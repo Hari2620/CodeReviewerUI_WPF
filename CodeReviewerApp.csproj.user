@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup />
+  <ItemGroup>
+    <ApplicationDefinition Update="App.xaml">
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="View\DiffView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="View\PrListView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="View\RepoBranchView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="View\ReportView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="MainWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Resource\GitHubTheme.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="View\DiffView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="View\PrListView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="View\RepoBranchView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="View\ReportView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+</Project>

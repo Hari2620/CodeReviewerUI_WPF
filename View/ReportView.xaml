@@ -1,0 +1,165 @@
+﻿<UserControl x:Class="CodeReviewerApp.View.ReportView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:CodeReviewerApp.Helpers"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             Margin="0">
+    <UserControl.Resources>
+        <local:ZeroToVisibleConverter x:Key="ZeroToVisibleConverter"/>
+    </UserControl.Resources>
+    <Border CornerRadius="16"
+            Background="#FAFAFA"
+            Padding="24,16,24,12"
+            BorderBrush="#E0E0E0"
+            BorderThickness="1"
+            Margin="24">
+        <DockPanel LastChildFill="True">
+            <!-- TOP BAR for Title + Buttons -->
+            <StackPanel Orientation="Horizontal"
+                        Background="#F4F8FB"
+                        DockPanel.Dock="Top"
+                        VerticalAlignment="Top">
+                <TextBlock Text="AI Code Review Report"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="#222"
+                           VerticalAlignment="Center"
+                           Margin="0,0,16,0"/>
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Margin="16,0,0,0">
+                    <Button Command="{Binding BackCommand}"
+                            ToolTip="Back"
+                            Margin="0,0,8,0"
+                            Padding="6"
+                            Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                        <iconPacks:PackIconOcticons Kind="ArrowLeft" Width="22" Height="22" Foreground="#1976D2"/>
+                    </Button>
+                    <Button Command="{Binding DownloadReportCommand}"
+                            ToolTip="Download Report"
+                            Padding="6"
+                            Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                        <iconPacks:PackIconOcticons Kind="Download" Width="22" Height="22" Foreground="#1976D2"/>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Scrollable Content -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Auto"
+                          Margin="0"
+                          Padding="24,0,24,24">
+                <StackPanel>
+                    <!-- Score -->
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                Margin="0,24,0,18">
+                        <TextBlock Text="AI Confidence Score:" FontWeight="Bold" FontSize="15" VerticalAlignment="Center"/>
+                        <ProgressBar Minimum="0" Maximum="1"
+                                     Value="{Binding AiReport.ai_score}"
+                                     Height="18"
+                                     Width="150"
+                                     Margin="10,0,10,0"
+                                     Foreground="#2196F3"
+                                     Background="#E3F2FD"/>
+                        <TextBlock Text="{Binding AiReport.ai_score, StringFormat={}{0:P0}}"
+                                   FontWeight="Bold"
+                                   Foreground="#2196F3"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- AI Comments -->
+                    <TextBlock Text="AI Suggestions and Comments:"
+                               FontWeight="Bold"
+                               FontSize="16"
+                               Foreground="#23272F"
+                               Margin="0,0,0,8"/>
+                    <Border Background="#F4F8FB" CornerRadius="10" Padding="12" Margin="0,0,0,18">
+                        <ItemsControl ItemsSource="{Binding AiReport.ai_comments}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                        <TextBlock Text="•" FontSize="16" Foreground="#2196F3" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="15" Foreground="#3D4251"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+
+                    <!-- Rule Violations -->
+                    <TextBlock Text="Rule-based Violations:" FontWeight="Bold" FontSize="16" Foreground="#23272F" Margin="0,0,0,8"/>
+                    <UniformGrid Columns="3" Margin="0,0,0,10">
+                        <!-- Naming Convention -->
+                        <StackPanel>
+                            <TextBlock Text="Naming" FontWeight="Bold" Foreground="#F57C00" Margin="0,0,0,4"/>
+                            <ItemsControl ItemsSource="{Binding AiReport.naming_convention}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" Foreground="#4D4D4D" FontSize="14"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                                <ItemsControl.Style>
+                                    <Style TargetType="ItemsControl">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding AiReport.naming_convention.Count}" Value="0">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ItemsControl.Style>
+                            </ItemsControl>
+                            <TextBlock Text="None" Foreground="#999" FontStyle="Italic" FontSize="13"
+                                       Visibility="{Binding AiReport.naming_convention.Count, Converter={StaticResource ZeroToVisibleConverter}}"/>
+                        </StackPanel>
+                        <!-- Complexity -->
+                        <StackPanel>
+                            <TextBlock Text="Complexity" FontWeight="Bold" Foreground="#7B1FA2" Margin="0,0,0,4"/>
+                            <ItemsControl ItemsSource="{Binding AiReport.complexity}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" Foreground="#4D4D4D" FontSize="14"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                                <ItemsControl.Style>
+                                    <Style TargetType="ItemsControl">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding AiReport.complexity.Count}" Value="0">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ItemsControl.Style>
+                            </ItemsControl>
+                            <TextBlock Text="None" Foreground="#999" FontStyle="Italic" FontSize="13"
+                                       Visibility="{Binding AiReport.complexity.Count, Converter={StaticResource ZeroToVisibleConverter}}"/>
+                        </StackPanel>
+                        <!-- Security -->
+                        <StackPanel>
+                            <TextBlock Text="Security" FontWeight="Bold" Foreground="#388E3C" Margin="0,0,0,4"/>
+                            <ItemsControl ItemsSource="{Binding AiReport.security}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" Foreground="#4D4D4D" FontSize="14"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                                <ItemsControl.Style>
+                                    <Style TargetType="ItemsControl">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding AiReport.security.Count}" Value="0">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ItemsControl.Style>
+                            </ItemsControl>
+                            <TextBlock Text="None" Foreground="#999" FontStyle="Italic" FontSize="13"
+                                       Visibility="{Binding AiReport.security.Count, Converter={StaticResource ZeroToVisibleConverter}}"/>
+                        </StackPanel>
+                    </UniformGrid>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>

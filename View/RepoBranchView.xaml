@@ -1,0 +1,92 @@
+﻿<UserControl x:Class="CodeReviewerApp.View.RepoBranchView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             MinHeight="80" Padding="10">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <!-- Repo icon -->
+            <ColumnDefinition Width="3*"/>
+            <!-- Repo ComboBox -->
+            <ColumnDefinition Width="20"/>
+            <!-- Spacer -->
+            <ColumnDefinition Width="Auto"/>
+            <!-- Branch icon -->
+            <ColumnDefinition Width="3*"/>
+            <!-- Branch ComboBox -->
+            <ColumnDefinition Width="20"/>
+            <!-- Spacer -->
+            <ColumnDefinition Width="Auto"/>
+            <!-- Next button -->
+        </Grid.ColumnDefinitions>
+
+        <!-- Repo selector -->
+        <iconPacks:PackIconOcticons Grid.Column="0" Kind="Repo" Width="24" Height="24" VerticalAlignment="Center" Margin="0,0,8,0"/>
+        <Grid Grid.Column="1">
+            <ComboBox ItemsSource="{Binding Repositories}"
+                      DisplayMemberPath="Name"
+                      SelectedItem="{Binding SelectedRepository}"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Center"/>
+            <TextBlock Text="Select repo"
+                       Foreground="Gray"
+                       Margin="8,0,0,0"
+                       VerticalAlignment="Center"
+                       IsHitTestVisible="False">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SelectedRepository}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </Grid>
+
+        <!-- Spacer -->
+        <Rectangle Grid.Column="2" Width="20"/>
+
+        <!-- Branch selector -->
+        <iconPacks:PackIconOcticons Grid.Column="3" Kind="GitBranch" Width="24" Height="24" VerticalAlignment="Center" Margin="0,0,8,0"/>
+        <Grid Grid.Column="4">
+            <ComboBox ItemsSource="{Binding Branches}"
+                      DisplayMemberPath="Name"
+                      SelectedItem="{Binding SelectedBranch}"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Center"/>
+            <TextBlock Text="Select branch"
+                       Foreground="Gray"
+                       Margin="8,0,0,0"
+                       VerticalAlignment="Center"
+                       IsHitTestVisible="False">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SelectedBranch}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </Grid>
+
+        <!-- Spacer -->
+        <Rectangle Grid.Column="5" Width="20"/>
+
+        <!-- Next Button -->
+        <Button Grid.Column="6" Command="{Binding NextCommand}"
+            Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
+            ToolTip="Next" Padding="6">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <iconPacks:PackIconOcticons Kind="ArrowRight" Width="20" Height="20" />
+                <TextBlock Text="Next" Margin="4,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Button>
+    </Grid>
+</UserControl>

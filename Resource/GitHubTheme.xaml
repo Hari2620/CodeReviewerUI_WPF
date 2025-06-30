@@ -1,0 +1,38 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- GitHub Neutrals -->
+    <Color x:Key="NeutralDark">#FF24292E</Color>
+    <Color x:Key="NeutralMedium">#FF2B3137</Color>
+    <Color x:Key="NeutralLight">#FFFFFFFF</Color>
+    <Color x:Key="NeutralExtraLight">#FFFAFBFC</Color>
+
+    <!-- GitHub Accents -->
+    <Color x:Key="AccentGitHubGreen">#FF2E8B57</Color>
+    <Color x:Key="AccentGitHubBlue">#FF4078C0</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource NeutralExtraLight}" />
+    <SolidColorBrush x:Key="WindowForegroundBrush" Color="{StaticResource NeutralDark}" />
+    <SolidColorBrush x:Key="PanelBackgroundBrush" Color="{StaticResource NeutralLight}" />
+    <SolidColorBrush x:Key="AccentGreenBrush" Color="{StaticResource AccentGitHubGreen}" />
+    <SolidColorBrush x:Key="AccentBlueBrush" Color="{StaticResource AccentGitHubBlue}" />
+
+    <!-- Main border brush based on color -->
+    <SolidColorBrush x:Key="NeutralMediumBrush" Color="{StaticResource NeutralMedium}" />
+
+    <!-- Button style -->
+    <Style TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Padding" Value="6"/>
+    </Style>
+
+    <!-- ListBox style -->
+    <Style TargetType="ListBox">
+        <Setter Property="Background" Value="{StaticResource PanelBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource WindowForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource NeutralMediumBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+</ResourceDictionary>

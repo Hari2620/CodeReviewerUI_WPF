@@ -1,0 +1,88 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Learning\\C#\\WPF\\CodeReviewerApp\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{B8D59623-7E77-47EF-9159-2034C89B34E2}|CodeReviewerApp.csproj|c:\\learning\\c#\\wpf\\codereviewerapp\\viewmodels\\diffviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8D59623-7E77-47EF-9159-2034C89B34E2}|CodeReviewerApp.csproj|solutionrelative:viewmodels\\diffviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8D59623-7E77-47EF-9159-2034C89B34E2}|CodeReviewerApp.csproj|c:\\learning\\c#\\wpf\\codereviewerapp\\helpers\\zerotovisibleconverter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8D59623-7E77-47EF-9159-2034C89B34E2}|CodeReviewerApp.csproj|solutionrelative:helpers\\zerotovisibleconverter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8D59623-7E77-47EF-9159-2034C89B34E2}|CodeReviewerApp.csproj|c:\\learning\\c#\\wpf\\codereviewerapp\\viewmodels\\reportviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8D59623-7E77-47EF-9159-2034C89B34E2}|CodeReviewerApp.csproj|solutionrelative:viewmodels\\reportviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B8D59623-7E77-47EF-9159-2034C89B34E2}|CodeReviewerApp.csproj|c:\\learning\\c#\\wpf\\codereviewerapp\\models\\aireport.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B8D59623-7E77-47EF-9159-2034C89B34E2}|CodeReviewerApp.csproj|solutionrelative:models\\aireport.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "DiffViewModel.cs",
+              "DocumentMoniker": "C:\\Learning\\C#\\WPF\\CodeReviewerApp\\ViewModels\\DiffViewModel.cs",
+              "RelativeDocumentMoniker": "ViewModels\\DiffViewModel.cs",
+              "ToolTip": "C:\\Learning\\C#\\WPF\\CodeReviewerApp\\ViewModels\\DiffViewModel.cs",
+              "RelativeToolTip": "ViewModels\\DiffViewModel.cs",
+              "ViewState": "AgIAAE8AAAAAAAAAAAAcwGEAAAA3AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-30T11:29:44.493Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AIReport.cs",
+              "DocumentMoniker": "C:\\Learning\\C#\\WPF\\CodeReviewerApp\\Models\\AIReport.cs",
+              "RelativeDocumentMoniker": "Models\\AIReport.cs",
+              "ToolTip": "C:\\Learning\\C#\\WPF\\CodeReviewerApp\\Models\\AIReport.cs",
+              "RelativeToolTip": "Models\\AIReport.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAAwA0AAAA1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-30T07:52:20.493Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ZeroToVisibleConverter.cs",
+              "DocumentMoniker": "C:\\Learning\\C#\\WPF\\CodeReviewerApp\\Helpers\\ZeroToVisibleConverter.cs",
+              "RelativeDocumentMoniker": "Helpers\\ZeroToVisibleConverter.cs",
+              "ToolTip": "C:\\Learning\\C#\\WPF\\CodeReviewerApp\\Helpers\\ZeroToVisibleConverter.cs",
+              "RelativeToolTip": "Helpers\\ZeroToVisibleConverter.cs",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAowBYAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-30T07:53:14.7Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ReportViewModel.cs",
+              "DocumentMoniker": "C:\\Learning\\C#\\WPF\\CodeReviewerApp\\ViewModels\\ReportViewModel.cs",
+              "RelativeDocumentMoniker": "ViewModels\\ReportViewModel.cs",
+              "ToolTip": "C:\\Learning\\C#\\WPF\\CodeReviewerApp\\ViewModels\\ReportViewModel.cs",
+              "RelativeToolTip": "ViewModels\\ReportViewModel.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAkwCEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-30T07:52:47.574Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
