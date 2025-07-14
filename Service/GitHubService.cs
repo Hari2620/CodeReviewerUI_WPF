@@ -1,4 +1,6 @@
-﻿using CodeReviewerApp.Interface;
+﻿using CodeReviewerApp.Helpers;
+using CodeReviewerApp.Interface;
+using CodeReviewerApp.Models;
 using Octokit;
 using System;
 using System.Collections.Generic;
@@ -49,5 +51,27 @@ namespace CodeReviewerApp.Service
             var repos = await _client.Repository.GetAllForCurrent();
             return repos.ToList();
         }
+        public async Task<List<ChangedFileModel>> GetPullRequestFilesAsync(string owner, string repo, int pullRequestNumber)
+        {
+            string? token = Environment.GetEnvironmentVariable("GITHUB_PAT");
+            var url = $"https://api.github.com/repos/{owner}/{repo}/pulls/{pullRequestNumber}/files";
+            var json = await HttpHelper.GetAsync(url, token);
+
+            // Use Newtonsoft.Json to parse
+            dynamic fileList = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
+            var files = new List<ChangedFileModel>();
+
+            foreach (var file in fileList)
+            {
+                files.Add(new ChangedFileModel
+                {
+                    FileName = file.filename,
+                    Status = file.status,
+                    RawUrl = file.raw_url // This gives the raw content for the head branch version
+                });
+            }
+            return files;
+        }
+
     }
 }

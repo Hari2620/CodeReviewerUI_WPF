@@ -19,5 +19,19 @@ namespace CodeReviewerApp.Helpers
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
+        public static async Task<string> GetAsync(string url, string token)
+        {
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", "CodeReviewerApp");
+                if (!string.IsNullOrEmpty(token))
+                    client.DefaultRequestHeaders.Add("Authorization", $"token {token}");
+
+                var response = await client.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsStringAsync();
+            }
+        }
+
     }
 }

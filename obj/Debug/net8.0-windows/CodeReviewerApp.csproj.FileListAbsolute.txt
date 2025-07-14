@@ -104,6 +104,8 @@ C:\Learning\C#\WPF\CodeReviewerApp\bin\Debug\net8.0-windows\fa-IR\ModernWpf.Cont
 C:\Learning\C#\WPF\CodeReviewerApp\bin\Debug\net8.0-windows\fa-IR\ModernWpf.resources.dll
 C:\Learning\C#\WPF\CodeReviewerApp\bin\Debug\net8.0-windows\fi-FI\ModernWpf.Controls.resources.dll
 C:\Learning\C#\WPF\CodeReviewerApp\bin\Debug\net8.0-windows\fi-FI\ModernWpf.resources.dll
+C:\Learning\C#\WPF\CodeReviewerApp\bin\Debug\net8.0-windows\fil-PH\ModernWpf.Controls.resources.dll
+C:\Learning\C#\WPF\CodeReviewerApp\bin\Debug\net8.0-windows\fil-PH\ModernWpf.resources.dll
 C:\Learning\C#\WPF\CodeReviewerApp\bin\Debug\net8.0-windows\fr-CA\ModernWpf.Controls.resources.dll
 C:\Learning\C#\WPF\CodeReviewerApp\bin\Debug\net8.0-windows\fr-CA\ModernWpf.resources.dll
 C:\Learning\C#\WPF\CodeReviewerApp\bin\Debug\net8.0-windows\fr-FR\ModernWpf.Controls.resources.dll
@@ -192,7 +194,6 @@ C:\Learning\C#\WPF\CodeReviewerApp\bin\Debug\net8.0-windows\vi-VN\ModernWpf.Cont
 C:\Learning\C#\WPF\CodeReviewerApp\bin\Debug\net8.0-windows\vi-VN\ModernWpf.resources.dll
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\CodeReviewerApp.csproj.AssemblyReference.cache
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\Resource\GitHubTheme.baml
-C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\View\DiffView.baml
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\View\PrListView.baml
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\View\RepoBranchView.baml
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\App.baml
@@ -207,12 +208,14 @@ C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\GeneratedInternalTyp
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\CodeReviewerApp_MarkupCompile.cache
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\CodeReviewerApp_MarkupCompile.lref
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\MainWindow.baml
+C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\View\DiffView.baml
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\View\ReportView.baml
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\CodeReviewerApp.g.resources
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\CodeReviewerApp.GeneratedMSBuildEditorConfig.editorconfig
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\CodeReviewerApp.AssemblyInfoInputs.cache
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\CodeReviewerApp.AssemblyInfo.cs
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\CodeReviewerApp.csproj.CoreCompileInputs.cache
+C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\CodeReviewerApp.sourcelink.json
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\CodeRevi.346AB450.Up2Date
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\CodeReviewerApp.dll
 C:\Learning\C#\WPF\CodeReviewerApp\obj\Debug\net8.0-windows\refint\CodeReviewerApp.dll

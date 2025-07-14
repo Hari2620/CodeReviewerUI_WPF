@@ -9,6 +9,12 @@ using Newtonsoft.Json;
 using CodeReviewerApp.Helpers;
 using System.Configuration;
 using CodeReviewerApp.Models;
+using System.Collections.ObjectModel;
+using System.Linq;
+using DiffPlex.DiffBuilder;
+using DiffPlex.DiffBuilder.Model;
+using DiffPlex;
+using System.Collections.Generic;
 
 namespace CodeReviewerApp.ViewModels
 {
@@ -19,7 +25,48 @@ namespace CodeReviewerApp.ViewModels
         private readonly PullRequest _pullRequest;
         private readonly Action<ViewModelBase> _navigate;
 
+        public ObservableCollection<ChangedFileModel> ChangedFiles { get; set; } = new();
+        public ObservableCollection<DiffRow> DiffRows { get; set; } = new();
+
+        private string _aiSuggestion;
+        public string AISuggestion
+        {
+            get => _aiSuggestion;
+            set { _aiSuggestion = value; OnPropertyChanged(); }
+        }
+
+        // === NEW: File Load Token ===
+        private Guid _currentFileToken = Guid.NewGuid();
+
+        private ChangedFileModel _selectedFile;
+        public ChangedFileModel SelectedFile
+        {
+            get => _selectedFile;
+            set
+            {
+                if (_selectedFile != value)
+                {
+                    _selectedFile = value;
+                    OnPropertyChanged();
+
+                    // Bump token for async ops
+                    _currentFileToken = Guid.NewGuid();
+                    var token = _currentFileToken;
+
+                    _ = LoadSelectedDiffAsync(token);
+
+                    if (_selectedFile != null && !_selectedFile.IsOverall)
+                        _ = FetchAISuggestionAsync(token);
+                    else
+                        AISuggestion = string.Empty;
+                }
+            }
+        }
+
         public ICommand AnalyzeCommand { get; }
+        public ICommand ApplyInlineSuggestionCommand { get; }
+        public ICommand OpenPopupCommand { get; }
+
         private string _aiFeedback;
         public string AiFeedback
         {
@@ -43,6 +90,20 @@ namespace CodeReviewerApp.ViewModels
 
         public PullRequest PullRequest => _pullRequest;
         public ICommand BackCommand { get; }
+        private string _leftFileText;
+        public string LeftFileText
+        {
+            get => _leftFileText;
+            set { _leftFileText = value; OnPropertyChanged(); }
+        }
+        private string _rightFileText;
+        public string RightFileText
+        {
+            get => _rightFileText;
+            set { _rightFileText = value; OnPropertyChanged(); }
+        }
+
+        private string _overallDiffText;
 
         public DiffViewModel(
             IGitHubService github,
@@ -60,23 +121,284 @@ namespace CodeReviewerApp.ViewModels
             );
 
             AnalyzeCommand = new RelayCommand<object>(_ => AnalyzeWithAI());
+            ApplyInlineSuggestionCommand = new RelayCommand<InlineAISuggestion>(ApplyInlineSuggestion);
+            OpenPopupCommand = new RelayCommand<DiffRow>(OpenPopupForRow);
 
-            _ = LoadDiffAsync();
+            _ = LoadDiffAndFilesAsync();
         }
 
-        private async Task LoadDiffAsync()
+        private async Task LoadDiffAndFilesAsync()
         {
             try
             {
                 DiffText = "Loading diff...";
-                DiffText = await _github.GetPullRequestDiffAsync(_repo.Owner.Login, _repo.Name, _pullRequest.Number);
-                Debug.WriteLine($"DIFF LOADED. Length: {DiffText?.Length ?? 0}");
+                _overallDiffText = await _github.GetPullRequestDiffAsync(_repo.Owner.Login, _repo.Name, _pullRequest.Number);
+                DiffText = _overallDiffText;
+
+                var changedFiles = await _github.GetPullRequestFilesAsync(_repo.Owner.Login, _repo.Name, _pullRequest.Number);
+                ChangedFiles.Clear();
+                ChangedFiles.Add(new ChangedFileModel
+                {
+                    FileName = "Overall Diff",
+                    Status = "all",
+                    IsOverall = true
+                });
+                foreach (var file in changedFiles)
+                {
+                    ChangedFiles.Add(file);
+                }
+                SelectedFile = ChangedFiles.FirstOrDefault();
             }
             catch (Exception ex)
             {
                 DiffText = $"Error loading diff: {ex.Message}";
-                Debug.WriteLine("Diff load failed: " + ex);
             }
+        }
+
+        // ==== UPDATED: Now takes the file token ====
+        private async Task LoadSelectedDiffAsync(Guid token)
+        {
+            var thisToken = token;
+
+            if (SelectedFile == null) return;
+
+            if (SelectedFile.IsOverall)
+            {
+                if (thisToken != _currentFileToken) return;
+                DiffText = _overallDiffText;
+                LeftFileText = string.Empty;
+                RightFileText = string.Empty;
+                DiffRows.Clear();
+            }
+            else
+            {
+                DiffText = string.Empty;
+                var baseSha = _pullRequest.Base.Sha;
+                var left = await FetchFileContentFromBase(_repo.Owner.Login, _repo.Name, SelectedFile.FileName, baseSha);
+                var right = await FetchFileContentFromRawUrl(SelectedFile.RawUrl);
+
+                // Guard: Only update if still the same file
+                if (thisToken != _currentFileToken) return;
+
+                LeftFileText = left;
+                RightFileText = right;
+
+                // !!! Pass token here !!!
+                await BuildSideBySideDiffWithAISuggestions(left, right, SelectedFile.FileName, thisToken);
+            }
+        }
+
+
+        // ==== UPDATED: Now takes the file token ====
+        private async Task BuildSideBySideDiffWithAISuggestions(string baseText, string prText, string fileName, Guid token)
+        {
+            var thisToken = token;
+            var diffBuilder = new SideBySideDiffBuilder(new Differ());
+            var diffModel = diffBuilder.BuildDiffModel(baseText ?? "", prText ?? "");
+
+            DiffRows.Clear();
+
+            var prFileLines = (prText ?? "").Replace("\r\n", "\n").Split('\n').ToList();
+            int maxCount = Math.Max(diffModel.OldText.Lines.Count, diffModel.NewText.Lines.Count);
+            for (int i = 0; i < maxCount; i++)
+            {
+                var left = i < diffModel.OldText.Lines.Count ? diffModel.OldText.Lines[i] : null;
+                var right = i < diffModel.NewText.Lines.Count ? diffModel.NewText.Lines[i] : null;
+
+                DiffLine leftLine = left != null && left.Type != DiffPlex.DiffBuilder.Model.ChangeType.Imaginary
+                    ? CreateDiffLine(left, true)
+                    : null;
+                DiffLine rightLine = right != null && right.Type != DiffPlex.DiffBuilder.Model.ChangeType.Imaginary
+                    ? CreateDiffLine(right, false)
+                    : null;
+
+                InlineAISuggestion suggestion = null;
+
+                // Only for Added/Modified lines
+                if (rightLine != null && (rightLine.Type == DiffType.Added || rightLine.Type == DiffType.Modified))
+                {
+                    string aiResponse = await GetAISuggestionForLineAsync(
+                        rightLine.Text,
+                        rightLine.LineNumber ?? (i + 1),
+                        fileName,
+                        prFileLines
+                    );
+
+                    // Guard: check after each await!
+                    if (thisToken != _currentFileToken) return;
+
+                    suggestion = new InlineAISuggestion
+                    {
+                        LineNumber = rightLine.LineNumber ?? i,
+                        OriginalText = rightLine.Text,
+                        SuggestedText = aiResponse,
+                        IsApplied = false
+                    };
+                }
+
+                var row = new DiffRow
+                {
+                    Left = leftLine,
+                    Right = rightLine,
+                    InlineSuggestion = suggestion,
+                    IsPopupOpen = false
+                };
+
+                DiffRows.Add(row);
+            }
+
+            // Guard: Only update if still the same file
+            if (thisToken != _currentFileToken) return;
+            OnPropertyChanged(nameof(DiffRows));
+        }
+
+        // ==== UPDATED: Now takes the file token ====
+        private async Task FetchAISuggestionAsync(Guid token)
+        {
+            var thisToken = token;
+            try
+            {
+                AISuggestion = "AI analyzing changes...";
+                await Task.Delay(600); // Simulate
+
+                if (thisToken != _currentFileToken) return;
+                AISuggestion = "AI Suggestion: Consider better variable naming or refactor logic if possible.";
+            }
+            catch (Exception ex)
+            {
+                if (thisToken != _currentFileToken) return;
+                AISuggestion = $"Failed to fetch AI suggestion: {ex.Message}";
+            }
+        }
+
+        // unchanged
+        public async Task<string> GetAISuggestionForLineAsync(string codeLine, int lineNumber, string fileName, List<string> prFileLines)
+        {
+            try
+            {
+                string apiUrl = ConfigurationManager.AppSettings["InlineAIReviewApiUrl"];
+
+                var payload = new
+                {
+                    fileName = fileName,
+                    line = codeLine,
+                    lineNumber = lineNumber,
+                    fullFile = prFileLines
+                };
+
+                string jsonPayload = JsonConvert.SerializeObject(payload);
+                var response = await HttpHelper.PostJsonAsync(apiUrl, jsonPayload);
+
+                // Expected response: { "suggestedText": "..." }
+                dynamic respObj = JsonConvert.DeserializeObject(response);
+                return respObj?.suggestedText ?? "";
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"AI API error (line {lineNumber}): {ex.Message}");
+                return ""; // If error, just skip suggestion
+            }
+        }
+
+        private DiffType MapDiffType(DiffPlex.DiffBuilder.Model.ChangeType change)
+        {
+            return change switch
+            {
+                DiffPlex.DiffBuilder.Model.ChangeType.Unchanged => DiffType.Unchanged,
+                DiffPlex.DiffBuilder.Model.ChangeType.Inserted => DiffType.Added,
+                DiffPlex.DiffBuilder.Model.ChangeType.Deleted => DiffType.Removed,
+                DiffPlex.DiffBuilder.Model.ChangeType.Imaginary => DiffType.Imaginary,
+                _ => DiffType.Unchanged
+            };
+        }
+
+        private DiffLine CreateDiffLine(DiffPiece piece, bool isLeftSide)
+        {
+            var line = new DiffLine
+            {
+                Text = piece.Text,
+                Type = MapDiffType(piece.Type),
+                LineNumber = piece.Type != DiffPlex.DiffBuilder.Model.ChangeType.Imaginary ? (int?)piece.Position : null,
+                Words = new ObservableCollection<DiffWord>()
+            };
+            if (piece.SubPieces != null && piece.SubPieces.Count > 0)
+            {
+                foreach (var w in piece.SubPieces)
+                    line.Words.Add(new DiffWord { Text = w.Text, Type = MapDiffType(w.Type) });
+            }
+            else
+            {
+                line.Words.Add(new DiffWord { Text = piece.Text, Type = MapDiffType(piece.Type) });
+            }
+            return line;
+        }
+
+        private async Task<string> FetchFileContentFromBase(string owner, string repo, string path, string sha)
+        {
+            try
+            {
+                string? token = Environment.GetEnvironmentVariable("GITHUB_PAT");
+                string url = $"https://api.github.com/repos/{owner}/{repo}/contents/{path}?ref={sha}";
+                string json = await HttpHelper.GetAsync(url, token);
+                dynamic obj = JsonConvert.DeserializeObject(json);
+
+                string contentBase64 = obj.content;
+                byte[] data = Convert.FromBase64String(contentBase64.Replace("\n", ""));
+                return System.Text.Encoding.UTF8.GetString(data);
+            }
+            catch (Exception ex)
+            {
+                return $"Error loading base file: {ex.Message}";
+            }
+        }
+
+        private async Task<string> FetchFileContentFromRawUrl(string rawUrl)
+        {
+            try
+            {
+                string? token = Environment.GetEnvironmentVariable("GITHUB_PAT");
+                return await HttpHelper.GetAsync(rawUrl, token);
+            }
+            catch (Exception ex)
+            {
+                return $"Error loading PR file: {ex.Message}";
+            }
+        }
+
+        // unchanged
+        private void ApplyInlineSuggestion(InlineAISuggestion suggestion)
+        {
+            if (suggestion == null) return;
+
+            var row = DiffRows.FirstOrDefault(r => r.InlineSuggestion == suggestion);
+            if (row != null && row.Right != null)
+            {
+                string code = suggestion.SuggestedText;
+                if (code.StartsWith("```"))
+                {
+                    int firstNewline = code.IndexOf('\n');
+                    if (firstNewline >= 0)
+                        code = code.Substring(firstNewline + 1);
+
+                    int lastBackticks = code.LastIndexOf("```");
+                    if (lastBackticks > 0)
+                        code = code.Substring(0, lastBackticks).TrimEnd();
+                }
+                row.Right.Text = code.Trim();
+                suggestion.IsApplied = true;
+                row.IsPopupOpen = false;
+            }
+            OnPropertyChanged(nameof(DiffRows));
+        }
+
+        private void OpenPopupForRow(DiffRow row)
+        {
+            foreach (var r in DiffRows)
+                r.IsPopupOpen = false;
+
+            if (row != null)
+                row.IsPopupOpen = true;
+            OnPropertyChanged(nameof(DiffRows));
         }
 
         private async void AnalyzeWithAI()
@@ -84,8 +406,7 @@ namespace CodeReviewerApp.ViewModels
             AiFeedback = "Analyzing...";
             try
             {
-                // Build payload for the new API (repo_url, pr_number, base)
-                var payloadObj = new System.Collections.Generic.Dictionary<string, object>
+                var payloadObj = new Dictionary<string, object>
                 {
                     { "repo_url", _repo.HtmlUrl },
                     { "pr_number", _pullRequest.Number },
@@ -95,13 +416,8 @@ namespace CodeReviewerApp.ViewModels
                 string apiUrl = ConfigurationManager.AppSettings["AIReviewApiUrl"];
                 var response = await HttpHelper.PostJsonAsync(apiUrl, jsonPayload);
 
-                // Parse API response to AIReport model
                 AiReport = JsonConvert.DeserializeObject<AIReport>(response);
-
-                // Show pretty JSON (for debug or user)
                 AiFeedback = JsonConvert.SerializeObject(AiReport, Formatting.Indented);
-
-                // Navigate to report screen
                 _navigate(new ReportViewModel(this.AiReport, _navigate, _github));
             }
             catch (Exception ex)

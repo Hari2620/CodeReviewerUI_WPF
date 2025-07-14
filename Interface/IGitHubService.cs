@@ -1,4 +1,5 @@
-﻿using Octokit;
+﻿using CodeReviewerApp.Models;
+using Octokit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,5 +15,6 @@ namespace CodeReviewerApp.Interface
         Task<List<Branch>> GetBranchesAsync(string owner, string repo);
         Task<List<PullRequest>> GetPullRequestsAsync(string owner, string repo);
         Task<string> GetPullRequestDiffAsync(string owner, string repo, int prNumber);
+        Task<List<ChangedFileModel>> GetPullRequestFilesAsync(string owner, string repo, int pullRequestNumber);
     }
 }

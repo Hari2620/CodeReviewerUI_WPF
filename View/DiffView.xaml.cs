@@ -1,17 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using CodeReviewerApp.Models;
+using CodeReviewerApp.ViewModels;
 
 namespace CodeReviewerApp.View
 {
@@ -23,6 +13,33 @@ namespace CodeReviewerApp.View
         public DiffView()
         {
             InitializeComponent();
+        }
+
+        // Handles the click on the icon to toggle the AI suggestion popup
+        private void AIIconBtn_Click(object sender, RoutedEventArgs e)
+        {
+            // Defensive: Make sure sender is a Button and find its DataContext
+            var btn = sender as Button;
+            if (btn == null)
+                return;
+
+            var diffRow = btn.DataContext as DiffRow;
+            if (diffRow == null)
+                return;
+
+            // Optional: Close all other popups for a clean experience
+            var vm = this.DataContext as DiffViewModel;
+            if (vm != null)
+            {
+                foreach (var row in vm.DiffRows)
+                {
+                    if (row != diffRow)
+                        row.ShowAISuggestionPopup = false;
+                }
+            }
+
+            // Toggle this popup (click again to close, or always open if you prefer)
+            diffRow.ShowAISuggestionPopup = !diffRow.ShowAISuggestionPopup;
         }
     }
 }
