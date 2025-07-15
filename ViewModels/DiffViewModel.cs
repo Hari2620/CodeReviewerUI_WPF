@@ -28,6 +28,11 @@ namespace CodeReviewerApp.ViewModels
         public ObservableCollection<ChangedFileModel> ChangedFiles { get; set; } = new();
         public ObservableCollection<DiffRow> DiffRows { get; set; } = new();
 
+        // Track applied suggestions by (filename, lineNumber) and store stripped text
+        private readonly Dictionary<(string fileName, int lineNumber), string> _appliedCodeMap = new();
+
+        public ObservableCollection<InlineAISuggestion> AppliedSuggestions { get; set; } = new ObservableCollection<InlineAISuggestion>();
+
         private string _aiSuggestion;
         public string AISuggestion
         {
@@ -35,7 +40,6 @@ namespace CodeReviewerApp.ViewModels
             set { _aiSuggestion = value; OnPropertyChanged(); }
         }
 
-        // === NEW: File Load Token ===
         private Guid _currentFileToken = Guid.NewGuid();
 
         private ChangedFileModel _selectedFile;
@@ -65,6 +69,7 @@ namespace CodeReviewerApp.ViewModels
 
         public ICommand AnalyzeCommand { get; }
         public ICommand ApplyInlineSuggestionCommand { get; }
+        public ICommand UndoInlineSuggestionCommand { get; }
         public ICommand OpenPopupCommand { get; }
 
         private string _aiFeedback;
@@ -122,6 +127,7 @@ namespace CodeReviewerApp.ViewModels
 
             AnalyzeCommand = new RelayCommand<object>(_ => AnalyzeWithAI());
             ApplyInlineSuggestionCommand = new RelayCommand<InlineAISuggestion>(ApplyInlineSuggestion);
+            UndoInlineSuggestionCommand = new RelayCommand<InlineAISuggestion>(UndoInlineSuggestion);
             OpenPopupCommand = new RelayCommand<DiffRow>(OpenPopupForRow);
 
             _ = LoadDiffAndFilesAsync();
@@ -155,7 +161,6 @@ namespace CodeReviewerApp.ViewModels
             }
         }
 
-        // ==== UPDATED: Now takes the file token ====
         private async Task LoadSelectedDiffAsync(Guid token)
         {
             var thisToken = token;
@@ -177,19 +182,15 @@ namespace CodeReviewerApp.ViewModels
                 var left = await FetchFileContentFromBase(_repo.Owner.Login, _repo.Name, SelectedFile.FileName, baseSha);
                 var right = await FetchFileContentFromRawUrl(SelectedFile.RawUrl);
 
-                // Guard: Only update if still the same file
                 if (thisToken != _currentFileToken) return;
 
                 LeftFileText = left;
                 RightFileText = right;
 
-                // !!! Pass token here !!!
                 await BuildSideBySideDiffWithAISuggestions(left, right, SelectedFile.FileName, thisToken);
             }
         }
 
-
-        // ==== UPDATED: Now takes the file token ====
         private async Task BuildSideBySideDiffWithAISuggestions(string baseText, string prText, string fileName, Guid token)
         {
             var thisToken = token;
@@ -214,26 +215,35 @@ namespace CodeReviewerApp.ViewModels
 
                 InlineAISuggestion suggestion = null;
 
-                // Only for Added/Modified lines
                 if (rightLine != null && (rightLine.Type == DiffType.Added || rightLine.Type == DiffType.Modified))
                 {
-                    string aiResponse = await GetAISuggestionForLineAsync(
-                        rightLine.Text,
-                        rightLine.LineNumber ?? (i + 1),
-                        fileName,
-                        prFileLines
-                    );
-
-                    // Guard: check after each await!
-                    if (thisToken != _currentFileToken) return;
-
-                    suggestion = new InlineAISuggestion
+                    // --- See if already applied ---
+                    var key = (fileName, rightLine.LineNumber ?? i);
+                    var applied = AppliedSuggestions.FirstOrDefault(s => s.FileName == fileName && s.LineNumber == (rightLine.LineNumber ?? i));
+                    if (applied != null && applied.IsApplied && _appliedCodeMap.TryGetValue(key, out var appliedCode))
                     {
-                        LineNumber = rightLine.LineNumber ?? i,
-                        OriginalText = rightLine.Text,
-                        SuggestedText = aiResponse,
-                        IsApplied = false
-                    };
+                        suggestion = applied;
+                        rightLine.Text = appliedCode; // Show applied code
+                    }
+                    else
+                    {
+                        string aiResponse = await GetAISuggestionForLineAsync(
+                            rightLine.Text,
+                            rightLine.LineNumber ?? (i + 1),
+                            fileName,
+                            prFileLines
+                        );
+                        if (thisToken != _currentFileToken) return;
+
+                        suggestion = new InlineAISuggestion
+                        {
+                            FileName = fileName,
+                            LineNumber = rightLine.LineNumber ?? i,
+                            OriginalText = rightLine.Text,
+                            SuggestedText = aiResponse,
+                            IsApplied = false
+                        };
+                    }
                 }
 
                 var row = new DiffRow
@@ -247,12 +257,10 @@ namespace CodeReviewerApp.ViewModels
                 DiffRows.Add(row);
             }
 
-            // Guard: Only update if still the same file
             if (thisToken != _currentFileToken) return;
             OnPropertyChanged(nameof(DiffRows));
         }
 
-        // ==== UPDATED: Now takes the file token ====
         private async Task FetchAISuggestionAsync(Guid token)
         {
             var thisToken = token;
@@ -271,7 +279,6 @@ namespace CodeReviewerApp.ViewModels
             }
         }
 
-        // unchanged
         public async Task<string> GetAISuggestionForLineAsync(string codeLine, int lineNumber, string fileName, List<string> prFileLines)
         {
             try
@@ -365,7 +372,7 @@ namespace CodeReviewerApp.ViewModels
             }
         }
 
-        // unchanged
+        // === Apply Suggestion (strip markdown, update both maps/lists, and UI) ===
         private void ApplyInlineSuggestion(InlineAISuggestion suggestion)
         {
             if (suggestion == null) return;
@@ -373,22 +380,56 @@ namespace CodeReviewerApp.ViewModels
             var row = DiffRows.FirstOrDefault(r => r.InlineSuggestion == suggestion);
             if (row != null && row.Right != null)
             {
-                string code = suggestion.SuggestedText;
-                if (code.StartsWith("```"))
-                {
-                    int firstNewline = code.IndexOf('\n');
-                    if (firstNewline >= 0)
-                        code = code.Substring(firstNewline + 1);
-
-                    int lastBackticks = code.LastIndexOf("```");
-                    if (lastBackticks > 0)
-                        code = code.Substring(0, lastBackticks).TrimEnd();
-                }
-                row.Right.Text = code.Trim();
+                string code = StripMarkdown(suggestion.SuggestedText);
+                row.Right.Text = code;
                 suggestion.IsApplied = true;
                 row.IsPopupOpen = false;
+
+                var key = (suggestion.FileName, suggestion.LineNumber);
+                _appliedCodeMap[key] = code; // Persist stripped code for this file/line
+
+                if (!AppliedSuggestions.Contains(suggestion))
+                    AppliedSuggestions.Add(suggestion);
             }
             OnPropertyChanged(nameof(DiffRows));
+        }
+
+        // === Undo Suggestion (restore original text, remove from maps/lists, update UI) ===
+        private void UndoInlineSuggestion(InlineAISuggestion suggestion)
+        {
+            if (suggestion == null) return;
+
+            var row = DiffRows.FirstOrDefault(r => r.InlineSuggestion == suggestion);
+            if (row != null && row.Right != null)
+            {
+                row.Right.Text = suggestion.OriginalText;
+                suggestion.IsApplied = false;
+
+                var key = (suggestion.FileName, suggestion.LineNumber);
+                if (_appliedCodeMap.ContainsKey(key))
+                    _appliedCodeMap.Remove(key);
+
+                if (AppliedSuggestions.Contains(suggestion))
+                    AppliedSuggestions.Remove(suggestion);
+            }
+            OnPropertyChanged(nameof(DiffRows));
+        }
+
+        // === Helper: Remove markdown ```
+        private string StripMarkdown(string suggestion)
+        {
+            if (string.IsNullOrWhiteSpace(suggestion)) return "";
+            string code = suggestion;
+            if (code.StartsWith("```"))
+            {
+                int firstNewline = code.IndexOf('\n');
+                if (firstNewline >= 0)
+                    code = code.Substring(firstNewline + 1);
+                int lastBackticks = code.LastIndexOf("```");
+                if (lastBackticks > 0)
+                    code = code.Substring(0, lastBackticks).TrimEnd();
+            }
+            return code.Trim();
         }
 
         private void OpenPopupForRow(DiffRow row)

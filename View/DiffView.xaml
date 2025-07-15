@@ -49,12 +49,18 @@
 
             <!-- Main Content (header, suggestion, diff area) -->
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="340" />
+                </Grid.ColumnDefinitions>
+                <!-- Main Content (header, suggestion, diff area) -->
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                <!-- Header and AI Suggestion -->
+                    <!-- Header and AI Suggestion -->
                 <StackPanel Grid.Row="0">
                     <DockPanel>
                         <Button Command="{Binding BackCommand}"
@@ -180,11 +186,27 @@
                                                     <StackPanel>
                                                         <TextBlock Text="AI Suggestion:" FontWeight="Bold" Foreground="#116b1b" Margin="0,0,0,6"/>
                                                         <TextBlock Text="{Binding InlineSuggestion.SuggestedText}" TextWrapping="Wrap" FontStyle="Italic" Foreground="#295a14"/>
-                                                        <Button Content="{Binding InlineSuggestion.IsApplied, Converter={StaticResource BoolToApplyTextConverter}}"
-                                        Command="{Binding DataContext.ApplyInlineSuggestionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding InlineSuggestion}"
-                                        IsEnabled="{Binding InlineSuggestion.IsApplied, Converter={StaticResource InverseBoolToVisibilityConverter}}"
-                                        Padding="4,0" MinWidth="54" Height="26" Margin="4,6,0,0"/>
+                                                        <!-- Apply button -->
+                                                        <Button
+    Content="{Binding InlineSuggestion.IsApplied, Converter={StaticResource BoolToApplyTextConverter}}" 
+    Command="{Binding DataContext.ApplyInlineSuggestionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+    CommandParameter="{Binding InlineSuggestion}"
+    IsEnabled="{Binding InlineSuggestion.IsApplied, Converter={StaticResource InverseBoolToVisibilityConverter}}"
+    Padding="4,0"
+    MinWidth="54"
+    Height="26"
+    Margin="4,6,0,0" />
+                                                        <!-- Undo button: only visible when applied -->
+                                                        <Button
+        Content="Undo"
+        Command="{Binding DataContext.UndoInlineSuggestionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+        CommandParameter="{Binding InlineSuggestion}"
+        Padding="4,0"
+        MinWidth="54"
+        Height="26"
+        Margin="4,6,0,0"
+        Visibility="{Binding InlineSuggestion.IsApplied, Converter={StaticResource BoolToVisibilityConverter}}" />
+
                                                     </StackPanel>
                                                 </Border>
                                             </Popup>
@@ -194,17 +216,47 @@
                     Background="{Binding Right.Type, Converter={StaticResource DiffTypeToBrushConverter}}">
                                             <TextBlock Text="{Binding Right.LineNumber}" FontFamily="Consolas" Foreground="#8AA" VerticalAlignment="Center" Margin="6,0,2,0"/>
                                         </StackPanel>
-                                        <Border Grid.Column="5"
-        Background="{Binding InlineSuggestion.IsApplied, Converter={StaticResource BoolToAppliedBrushConverter}}"
-        Padding="2,0,0,0" VerticalAlignment="Stretch">
+                                        <Border
+    Grid.Column="5"
+    Background="{Binding InlineSuggestion.IsApplied, Converter={StaticResource BoolToAppliedBrushConverter}}"
+    Padding="2,0,0,0"
+    VerticalAlignment="Stretch">
                                             <TextBlock Text="{Binding Right.Text}" FontFamily="Consolas" VerticalAlignment="Center"/>
                                         </Border>
                                     </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-
                     </ScrollViewer>
+                </Border>
+                </Grid>
+                <!-- Sidebar: Applied Suggestions Summary -->
+                <Border Grid.Column="1"
+            Background="#FFFEF7"
+            CornerRadius="12"
+            Padding="18"
+            BorderBrush="#FFC300"
+            BorderThickness="1"
+            Margin="16,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Applied Suggestions"
+                       FontSize="17"
+                       FontWeight="SemiBold"
+                       Foreground="#7B6005"
+                       Margin="0,0,0,14" />
+                        <ItemsControl ItemsSource="{Binding AppliedSuggestions}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="0,0,0,16">
+                                        <TextBlock Text="{Binding FileName}" FontWeight="Bold" Foreground="#b28900" FontSize="14"/>
+                                        <TextBlock Text="{Binding OriginalText}" FontFamily="Consolas" Foreground="#555" FontSize="13"/>
+                                        <TextBlock Text="→" FontWeight="Bold" FontSize="13"/>
+                                        <TextBlock Text="{Binding SuggestedText}" FontFamily="Consolas" Foreground="#213c14" FontSize="13" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
                 </Border>
             </Grid>
         </DockPanel>

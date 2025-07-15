@@ -16,7 +16,7 @@
 
     <DockPanel>
         <!-- Toolbar -->
-        <Border Background="{DynamicResource PanelBackgroundBrush}" Padding="8" DockPanel.Dock="Top">
+        <!--<Border Background="{DynamicResource PanelBackgroundBrush}" Padding="8" DockPanel.Dock="Top">
             <StackPanel Orientation="Horizontal">
                 <Button Command="{Binding OpenDiffCommand}" ToolTip="Open Diff">
                     <iconPacks:PackIconOcticons Kind="FileDiff" Width="20" Height="20"/>
@@ -35,7 +35,7 @@
                     <cod:PackIconCodicons Kind="ColorMode" Width="20" Height="20"/>
                 </Button>
             </StackPanel>
-        </Border>
+        </Border>-->
 
         <!-- Dynamic content region -->
         <ContentControl Content="{Binding CurrentViewModel}" Margin="10">
