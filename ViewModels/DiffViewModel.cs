@@ -15,6 +15,9 @@ using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 using DiffPlex;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+
 
 namespace CodeReviewerApp.ViewModels
 {
@@ -28,7 +31,7 @@ namespace CodeReviewerApp.ViewModels
         public ObservableCollection<ChangedFileModel> ChangedFiles { get; set; } = new();
         public ObservableCollection<DiffRow> DiffRows { get; set; } = new();
 
-        // Track applied suggestions by (filename, lineNumber) and store stripped text
+        // Tracks applied suggestion's code for (filename, lineNumber)
         private readonly Dictionary<(string fileName, int lineNumber), string> _appliedCodeMap = new();
 
         public ObservableCollection<InlineAISuggestion> AppliedSuggestions { get; set; } = new ObservableCollection<InlineAISuggestion>();
@@ -110,6 +113,26 @@ namespace CodeReviewerApp.ViewModels
 
         private string _overallDiffText;
 
+        private bool _isSidebarVisible = false;
+        public bool IsSidebarVisible
+        {
+            get => _isSidebarVisible;
+            set { _isSidebarVisible = value; OnPropertyChanged(); }
+        }
+
+        private bool _isAppliedSuggestionsVisible = false;
+        public bool IsAppliedSuggestionsVisible
+        {
+            get => _isAppliedSuggestionsVisible;
+            set { _isAppliedSuggestionsVisible = value; OnPropertyChanged(); }
+        }
+
+        // Command to toggle left sidebar
+        public ICommand ToggleSidebarCommand { get; }
+
+        // Command to toggle right AI suggestions
+        public ICommand ToggleAppliedSuggestionsCommand { get; }
+
         public DiffViewModel(
             IGitHubService github,
             Repository repo,
@@ -129,6 +152,15 @@ namespace CodeReviewerApp.ViewModels
             ApplyInlineSuggestionCommand = new RelayCommand<InlineAISuggestion>(ApplyInlineSuggestion);
             UndoInlineSuggestionCommand = new RelayCommand<InlineAISuggestion>(UndoInlineSuggestion);
             OpenPopupCommand = new RelayCommand<DiffRow>(OpenPopupForRow);
+            ToggleSidebarCommand = new RelayCommand<object>(_ =>
+            {
+                IsSidebarVisible = !IsSidebarVisible;
+            });
+
+            ToggleAppliedSuggestionsCommand = new RelayCommand<object>(_ =>
+            {
+                IsAppliedSuggestionsVisible = !IsAppliedSuggestionsVisible;
+            });
 
             _ = LoadDiffAndFilesAsync();
         }
@@ -217,13 +249,12 @@ namespace CodeReviewerApp.ViewModels
 
                 if (rightLine != null && (rightLine.Type == DiffType.Added || rightLine.Type == DiffType.Modified))
                 {
-                    // --- See if already applied ---
                     var key = (fileName, rightLine.LineNumber ?? i);
                     var applied = AppliedSuggestions.FirstOrDefault(s => s.FileName == fileName && s.LineNumber == (rightLine.LineNumber ?? i));
                     if (applied != null && applied.IsApplied && _appliedCodeMap.TryGetValue(key, out var appliedCode))
                     {
                         suggestion = applied;
-                        rightLine.Text = appliedCode; // Show applied code
+                        rightLine.Text = appliedCode; // Always show the stripped code if applied
                     }
                     else
                     {
