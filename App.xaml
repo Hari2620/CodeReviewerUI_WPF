@@ -3,36 +3,22 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.modernwpf.com/2019"
              StartupUri="MainWindow.xaml">
+
+    <!--  App‑wide theme resources  -->
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- ModernWpf Light/Dark themes -->
-                <ui:ThemeResources>
-                    <ui:ThemeResources.ThemeDictionaries>
-                        <ResourceDictionary x:Key="Light">
-                            <ResourceDictionary.MergedDictionaries>
-                                <ui:ColorPaletteResources
-                                    TargetTheme="Light"
-                                    Accent="Blue"
-                                    AltHigh="LightGray"/>
-                            </ResourceDictionary.MergedDictionaries>
-                        </ResourceDictionary>
-                        <ResourceDictionary x:Key="Dark">
-                            <ResourceDictionary.MergedDictionaries>
-                                <ui:ColorPaletteResources
-                                    TargetTheme="Dark"
-                                    Accent="Green"
-                                    AltHigh="DarkGray"/>
-                            </ResourceDictionary.MergedDictionaries>
-                        </ResourceDictionary>
-                    </ui:ThemeResources.ThemeDictionaries>
-                </ui:ThemeResources>
 
-                <!-- WinUI Controls -->
+                <!-- 1. ModernWpf theme engine (handles Light / Dark) -->
+                <ui:ThemeResources />
+
+                <!-- 2. WinUI ‑ MahApps control styles -->
                 <ui:XamlControlsResources />
 
-                <!-- Your GitHub-inspired theme -->
-                <ResourceDictionary Source="Resource/GitHubTheme.xaml"/>
+                <!-- 3. Your new semantic GitHub palette -->
+                <!--    Make sure the file lives at  Resource/GitHubModern.xaml -->
+                <ResourceDictionary Source="Resource/GitHub.Modern.xaml"/>
+
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
